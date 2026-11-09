@@ -9,7 +9,9 @@ import http from 'node:http'
 /** One IPP attribute: tag, name, value. A name of '' adds another value to the one before. */
 function attr(tag, name, value) {
   const n = Buffer.from(name)
-  const v = typeof value === 'number' ? Buffer.alloc(4) : Buffer.from(value)
+  const v = typeof value === 'number'
+    ? Buffer.alloc(4)
+    : Buffer.from(value)
   if (typeof value === 'number') {
     v.writeInt32BE(value)
   }
@@ -38,15 +40,41 @@ function response(requestId, s) {
     attr(0x48, 'attributes-natural-language', 'en'),
     Buffer.from([0x04]),
     attr(0x23, 'printer-state', s.state),
-    ...multi(0x44, 'printer-state-reasons', s.reasons.length ? s.reasons : ['none']),
+    ...multi(0x44, 'printer-state-reasons', s.reasons.length
+      ? s.reasons
+      : ['none']),
     attr(0x41, 'printer-make-and-model', s.model),
     attr(0x21, 'queued-job-count', s.jobs),
-    ...multi(0x42, 'marker-names', s.markers.map(m => m.name)),
-    ...multi(0x21, 'marker-levels', s.markers.map(m => m.level)),
-    ...multi(0x21, 'marker-low-levels', s.markers.map(() => 10)),
-    ...multi(0x21, 'marker-high-levels', s.markers.map(() => 100)),
-    ...multi(0x42, 'marker-colors', s.markers.map(m => m.color)),
-    ...multi(0x44, 'marker-types', s.markers.map(() => 'ink-cartridge')),
+    ...multi(
+      0x42,
+      'marker-names',
+      s.markers.map(m => m.name),
+    ),
+    ...multi(
+      0x21,
+      'marker-levels',
+      s.markers.map(m => m.level),
+    ),
+    ...multi(
+      0x21,
+      'marker-low-levels',
+      s.markers.map(() => 10),
+    ),
+    ...multi(
+      0x21,
+      'marker-high-levels',
+      s.markers.map(() => 100),
+    ),
+    ...multi(
+      0x42,
+      'marker-colors',
+      s.markers.map(m => m.color),
+    ),
+    ...multi(
+      0x44,
+      'marker-types',
+      s.markers.map(() => 'ink-cartridge'),
+    ),
     Buffer.from([0x03]),
   ])
 }
@@ -88,16 +116,18 @@ export function createPrinter() {
       res.end(response(body.readInt32BE(4), printer.state))
     })
   })
-  printer.listen = () => new Promise((resolve) => {
-    server.listen(0, '127.0.0.1', () => {
-      printer.address = `127.0.0.1:${server.address().port}`
-      resolve(printer)
+  printer.listen = () =>
+    new Promise((resolve) => {
+      server.listen(0, '127.0.0.1', () => {
+        printer.address = `127.0.0.1:${server.address().port}`
+        resolve(printer)
+      })
     })
-  })
-  printer.close = () => new Promise((resolve) => {
-    server.closeAllConnections()
-    server.close(() => resolve())
-  })
+  printer.close = () =>
+    new Promise((resolve) => {
+      server.closeAllConnections()
+      server.close(() => resolve())
+    })
   return printer
 }
 

@@ -11,10 +11,17 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { normaliseEnergyConfig, powerState } from '../lib/energy.js'
 import { createPrinter } from './fake-ipp-printer.js'
-import { boot, PlatformAccessory, sleep, useStorage } from './harness.js'
+import { boot, homebridge, loadHomebridge, sleep, useStorage } from './harness.js'
 
 const DASHBOARD = 18590
-const CLUSTERS = new Set(['onOff', 'electricalPowerMeasurement', 'electricalEnergyMeasurement', 'bridgedDeviceBasicInformation', 'basicInformation', 'identify'])
+const CLUSTERS = new Set([
+  'onOff',
+  'electricalPowerMeasurement',
+  'electricalEnergyMeasurement',
+  'bridgedDeviceBasicInformation',
+  'basicInformation',
+  'identify',
+])
 
 let printer
 let storage
@@ -27,23 +34,46 @@ function makeMatter(api, { startingRefusals = 0, restored = [] } = {}) {
   // like Homebridge: cached accessories are restored before the plugin starts, with
   // their state but empty handlers, and count as registered until the plugin registers them
   for (const a of restored) {
-    registered.set(a.UUID, { ...a, state: {}, partState: Object.fromEntries((a.parts || []).map(p => [p.id, structuredClone(p.clusters)])), restored: true })
+    registered.set(a.UUID, {
+      ...a,
+      state: {},
+      partState: Object.fromEntries((a.parts || []).map(p => [
+        p.id,
+        structuredClone(p.clusters),
+      ])),
+      restored: true,
+    })
   }
   const matter = {
     uuid: api.hap.uuid,
-    deviceTypes: { OnOffOutlet: { name: 'OnOffPlugInUnitDevice' }, BridgedNode: { name: 'BridgedNodeEndpoint' } },
+    deviceTypes: {
+      OnOffOutlet: { name: 'OnOffPlugInUnitDevice' },
+      BridgedNode: { name: 'BridgedNodeEndpoint' },
+    },
     async registerPlatformAccessories(pluginName, platformName, accessories) {
       log.registerCalls++
       if (refusals-- > 0) {
         throw new Error('Cannot register Matter accessories yet - the Matter server for this bridge is still starting.')
       }
       for (const a of accessories) {
-        for (const field of ['UUID', 'displayName', 'deviceType', 'manufacturer', 'model', 'serialNumber']) {
+        for (const field of [
+          'UUID',
+          'displayName',
+          'deviceType',
+          'manufacturer',
+          'model',
+          'serialNumber',
+        ]) {
           if (!a[field]) {
             log.errors.push(`missing ${field}`)
           }
         }
-        for (const field of ['displayName', 'model', 'manufacturer', 'serialNumber']) {
+        for (const field of [
+          'displayName',
+          'model',
+          'manufacturer',
+          'serialNumber',
+        ]) {
           if (String(a[field]).length > 32) {
             log.errors.push(`${field} longer than 32: ${a[field]}`)
           }
@@ -61,7 +91,12 @@ function makeMatter(api, { startingRefusals = 0, restored = [] } = {}) {
         if (existing && !existing.restored) {
           log.errors.push(`registered twice: ${a.displayName}`)
         }
-        registered.set(a.UUID, { ...a, state: structuredClone(a.clusters || {}), partState: existing?.restored ? existing.partState : parts, restored: false })
+        registered.set(a.UUID, {
+          ...a,
+          state: structuredClone(a.clusters || {}),
+          partState: existing?.restored ? existing.partState : parts,
+          restored: false,
+        })
       }
     },
     async unregisterPlatformAccessories(pluginName, platformName, accessories) {
@@ -108,28 +143,40 @@ function start(config, { matterOn = true, version, startingRefusals, restored, c
     },
     cached: cachedHap,
     restore: (platform) => {
-      for (const a of restored || []) platform.configureMatterAccessory(a)
+      for (const a of restored || []) {
+        platform.configureMatterAccessory(a)
+      }
     },
   })
   run.m = m
   return run
 }
 
-const stop = async () => {
+async function stop() {
   run.api.signalShutdown()
   await sleep(300)
 }
 
-const cfg = (extra = {}, top = {}) => ({
-  platform: 'Printer',
-  printers: [{ name: 'Study', address: printer.address, polling: 2, ...extra }],
-  dashboard: { enabled: true, port: DASHBOARD, host: '127.0.0.1' },
-  ...top,
-})
+function cfg(extra = {}, top = {}) {
+  return {
+    platform: 'Printer',
+    printers: [
+      {
+        name: 'Study',
+        address: printer.address,
+        polling: 2,
+        ...extra,
+      },
+    ],
+    dashboard: { enabled: true, port: DASHBOARD, host: '127.0.0.1' },
+    ...top,
+  }
+}
 
 const part = async (uuid, cluster) => run.m.matter.getAccessoryState(uuid, cluster, 'outlet')
 
 beforeAll(async () => {
+  await loadHomebridge()
   storage = useStorage()
   printer = await createPrinter().listen()
 })
@@ -149,11 +196,17 @@ describe('energy over matter', () => {
 
     await sleep(10_500)
     expect(run.m.log.registerCalls).toBe(2)
-    outlet = [...run.m.registered.values()][0]
+    outlet = [
+      ...run.m.registered.values(),
+    ][0]
     expect(outlet.displayName).toBe('Study Online')
     expect(outlet.deviceType.name).toBe('BridgedNodeEndpoint')
     expect(outlet.parts.map(p => p.deviceType.name)).toEqual(['OnOffPlugInUnitDevice'])
-    expect(Object.keys(outlet.parts[0].clusters).sort()).toEqual(['electricalEnergyMeasurement', 'electricalPowerMeasurement', 'onOff'])
+    expect(Object.keys(outlet.parts[0].clusters).sort()).toEqual([
+      'electricalEnergyMeasurement',
+      'electricalPowerMeasurement',
+      'onOff',
+    ])
     expect(run.registered.map(a => a.displayName)).toEqual(['Study', 'Study Printing'])
     expect(run.m.log.errors).toEqual([])
     expect(run.log.lines.some(l => l.includes('"Study Online" is published with energy'))).toBe(true)
@@ -204,8 +257,20 @@ describe('energy over matter', () => {
   })
 
   it('gives a restored outlet its handlers back, and removes an outlet from an older version', async () => {
-    const flat = { UUID: run.api.hap.uuid.generate('hp-printer:Study:energy'), displayName: 'Study Online', deviceType: { name: 'OnOffPlugInUnitDevice' } }
-    start(cfg(), { restored: [{ ...outlet, parts: outlet.parts.map(p => ({ ...p, handlers: {} })) }, flat] })
+    const flat = {
+      UUID: run.api.hap.uuid.generate('hp-printer:Study:energy'),
+      displayName: 'Study Online',
+      deviceType: { name: 'OnOffPlugInUnitDevice' },
+    }
+    start(cfg(), {
+      restored: [
+        {
+          ...outlet,
+          parts: outlet.parts.map(p => ({ ...p, handlers: {} })),
+        },
+        flat,
+      ],
+    })
     await sleep(1500)
     expect(run.m.log.unregistered).toContain('Study Online')
     expect(run.m.registered.has(flat.UUID)).toBe(false)
@@ -219,7 +284,11 @@ describe('energy over matter', () => {
   it('explains how to turn matter on, and keeps the estimate on the dashboard', async () => {
     start(cfg(), { matterOn: false })
     await sleep(1500)
-    expect(run.log.lines.some(l => /Energy in Apple Home is off: Matter is not turned on.*Settings → Matter Settings/.test(l))).toBe(true)
+    expect(
+      run.log.lines.some(l =>
+        /Energy in Apple Home is off: Matter is not turned on.*Settings → Matter Settings/.test(l),
+      ),
+    ).toBe(true)
     const dash = await (await fetch(`http://127.0.0.1:${DASHBOARD}/api/status`)).json()
     expect(dash.printers[0].energy.estimated).toBe(true)
     expect(run.registered.some(a => a.displayName === 'Study Online')).toBe(true)
@@ -237,7 +306,9 @@ describe('energy over matter', () => {
   it('calls the outlet energy when the online switch is turned off', async () => {
     start(cfg({ onlineSwitch: false }))
     await sleep(1500)
-    expect([...run.m.registered.values()][0].displayName).toBe('Study Energy')
+    expect([
+      ...run.m.registered.values(),
+    ][0].displayName).toBe('Study Energy')
     expect(run.registered.some(a => /Online/.test(a.displayName))).toBe(false)
     await stop()
   })
@@ -245,12 +316,18 @@ describe('energy over matter', () => {
 
 describe('matter only', () => {
   it('publishes only over matter and removes the homekit accessories', async () => {
-    const old = new PlatformAccessory('Study', run.api.hap.uuid.generate('hp-printer:Study'))
+    const old = new homebridge.PlatformAccessory('Study', run.api.hap.uuid.generate('hp-printer:Study'))
     old._associatedPlugin = '@homebridge-plugins/homebridge-printer'
     old._associatedPlatform = 'Printer'
-    start(cfg({}, { matterOnly: true }), { cachedHap: [JSON.parse(JSON.stringify(PlatformAccessory.serialize(old)))] })
+    start(cfg({}, { matterOnly: true }), {
+      cachedHap: [
+        JSON.parse(JSON.stringify(homebridge.PlatformAccessory.serialize(old))),
+      ],
+    })
     await sleep(1800)
-    const all = [...run.m.registered.values()]
+    const all = [
+      ...run.m.registered.values(),
+    ]
     const online = all.find(a => a.displayName === 'Study Online')
     const printing = all.find(a => a.displayName === 'Study Printing')
     expect(run.registered).toEqual([])
@@ -274,9 +351,18 @@ describe('matter only', () => {
   }, 30_000)
 
   it('without energy, publishes a plain online outlet and the printing one', async () => {
-    start(cfg({ energy: { enabled: false } }, { matterOnly: true }))
+    start(
+      cfg(
+        {
+          energy: { enabled: false },
+        },
+        { matterOnly: true },
+      ),
+    )
     await sleep(1500)
-    const online = [...run.m.registered.values()].find(a => a.displayName === 'Study Online')
+    const online = [
+      ...run.m.registered.values(),
+    ].find(a => a.displayName === 'Study Online')
     expect('electricalPowerMeasurement' in online.parts[0].clusters).toBe(false)
     expect(run.m.registered.size).toBe(2)
     await stop()
@@ -293,8 +379,20 @@ describe('matter only', () => {
 
 describe('the energy settings', () => {
   it('reads custom wattages, keeping the defaults for empty ones', () => {
-    const c = normaliseEnergyConfig({ energy: { printingWatts: 18, readyWatts: '3.5', sleepWatts: '', offWatts: 0 } })
-    expect(c.watts).toEqual({ printing: 18, ready: 3.5, sleep: 1.4, off: 0 })
+    const c = normaliseEnergyConfig({
+      energy: {
+        printingWatts: 18,
+        readyWatts: '3.5',
+        sleepWatts: '',
+        offWatts: 0,
+      },
+    })
+    expect(c.watts).toEqual({
+      printing: 18,
+      ready: 3.5,
+      sleep: 1.4,
+      off: 0,
+    })
   })
 
   it('uses sleep watts after the idle time, and off watts when unreachable', () => {

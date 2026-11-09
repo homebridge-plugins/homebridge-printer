@@ -6,18 +6,29 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { createPrinter } from './fake-ipp-printer.js'
-import { asHomeHubSeesIt, boot, PlatformAccessory, serialise, sleep, useStorage } from './harness.js'
+import { asHomeHubSeesIt, boot, homebridge, loadHomebridge, serialise, sleep, useStorage } from './harness.js'
 
 const DASHBOARD = 18587
 let printer
 let run
 
-const cfg = (address, extra = {}) => ({
-  platform: 'Printer',
-  printers: [{ name: 'My Printer', address, polling: 2, marker: true, lowInkThreshold: 10, history: true }],
-  dashboard: { enabled: true, port: DASHBOARD, host: '127.0.0.1' },
-  ...extra,
-})
+function cfg(address, extra = {}) {
+  return {
+    platform: 'Printer',
+    printers: [
+      {
+        name: 'My Printer',
+        address,
+        polling: 2,
+        marker: true,
+        lowInkThreshold: 10,
+        history: true,
+      },
+    ],
+    dashboard: { enabled: true, port: DASHBOARD, host: '127.0.0.1' },
+    ...extra,
+  }
+}
 
 const find = name => run.all.find(a => a.displayName === name)
 const on = name => find(name).getService(run.hap.Service.Switch).getCharacteristic(run.hap.Characteristic.On).value
@@ -25,6 +36,7 @@ const contact = () => find('My Printer').getService(run.hap.Service.ContactSenso
 const inks = acc => acc.services.filter(s => s.UUID === run.hap.Service.FilterMaintenance.UUID)
 
 beforeAll(async () => {
+  await loadHomebridge()
   useStorage()
   printer = await createPrinter().listen()
 })
@@ -103,7 +115,7 @@ describe('a printer in homebridge', () => {
   it('keeps an online switch made by an older version', async () => {
     const legacyUuid = run.hap.uuid.generate('hp-printer:My Printer:online')
     const cached = serialise(run.all).filter(s => s.UUID !== legacyUuid)
-    const legacy = new PlatformAccessory('My Printer Online', legacyUuid)
+    const legacy = new homebridge.PlatformAccessory('My Printer Online', legacyUuid)
     legacy.addService(run.hap.Service.Switch, 'My Printer Online', 'online')
     legacy._associatedPlugin = '@homebridge-plugins/homebridge-printer'
     legacy._associatedPlatform = 'Printer'
@@ -140,15 +152,40 @@ describe('a printer in homebridge', () => {
   }, 20_000)
 
   it.each([
-    [{ onlineSwitch: false }, ['Solo', 'Solo Printing']],
-    [{ printingSwitch: false }, ['Solo', 'Solo Online']],
-    [{ onlineSwitch: false, printingSwitch: false }, ['Solo']],
-    [{ switchType: 'NONE' }, ['Solo']],
-    [{ switchType: 'SWITCH' }, ['Solo', 'Solo Online', 'Solo Printing']],
-  ])('with %j, shows %j', async (options, names) => {
-    run = boot({ platform: 'Printer', printers: [{ name: 'Solo', address: printer.address, ...options }], dashboard: { enabled: false } })
-    expect(run.all.map(a => a.displayName).sort()).toEqual(names)
-    run.api.signalShutdown()
-    await sleep(200)
-  }, 20_000)
+    [
+      { onlineSwitch: false },
+      ['Solo', 'Solo Printing'],
+    ],
+    [
+      { printingSwitch: false },
+      ['Solo', 'Solo Online'],
+    ],
+    [
+      { onlineSwitch: false, printingSwitch: false },
+      ['Solo'],
+    ],
+    [
+      { switchType: 'NONE' },
+      ['Solo'],
+    ],
+    [
+      { switchType: 'SWITCH' },
+      ['Solo', 'Solo Online', 'Solo Printing'],
+    ],
+  ])(
+    'with %j, shows %j',
+    async (options, names) => {
+      run = boot({
+        platform: 'Printer',
+        printers: [
+          { name: 'Solo', address: printer.address, ...options },
+        ],
+        dashboard: { enabled: false },
+      })
+      expect(run.all.map(a => a.displayName).sort()).toEqual(names)
+      run.api.signalShutdown()
+      await sleep(200)
+    },
+    20_000,
+  )
 })
