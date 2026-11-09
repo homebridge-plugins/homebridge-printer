@@ -281,6 +281,17 @@ describe('energy over matter', () => {
     await stop()
   })
 
+  it('removes the outlet when energy is turned off', async () => {
+    start(cfg({
+      energy: { enabled: false },
+    }), {
+      restored: [outlet],
+    })
+    await sleep(1500)
+    expect(run.m.registered.size).toBe(0)
+    await stop()
+  })
+
   it('explains how to turn matter on, and keeps the estimate on the dashboard', async () => {
     start(cfg(), { matterOn: false })
     await sleep(1500)
