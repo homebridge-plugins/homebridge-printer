@@ -188,4 +188,32 @@ describe('a printer in homebridge', () => {
     },
     20_000,
   )
+
+  it('skips an address it cannot use, instead of stopping homebridge', () => {
+    run = boot({
+      platform: 'Printer',
+      printers: [
+        { name: 'Office', address: 'HP Office.local' },
+      ],
+      dashboard: { enabled: false },
+    })
+    expect(run.all).toEqual([])
+    expect(run.log.lines.some(l => l.includes('"HP Office.local" is not an address the plugin can use'))).toBe(true)
+    run.api.signalShutdown()
+  })
+
+  it('skips a printer whose name would give an accessory the same id as another', () => {
+    run = boot({
+      platform: 'Printer',
+      printers: [
+        { name: 'Office', address: printer.address },
+        { name: 'Office:online', address: printer.address },
+      ],
+      dashboard: { enabled: false },
+    })
+    const ids = run.all.map(a => a.UUID)
+    expect(new Set(ids).size).toBe(ids.length)
+    expect(run.log.lines.some(l => l.includes('Office:online: this name clashes'))).toBe(true)
+    run.api.signalShutdown()
+  })
 })
