@@ -1,17 +1,21 @@
 {
-  "pluginAlias": "HPPrinter",
+  "pluginAlias": "Printer",
   "pluginType": "platform",
   "singular": true,
   "customUi": true,
-  "headerDisplay": "**Enter your printer's IP address or .local name below, click Save, then restart Homebridge.**\n\nNot sure of the address? Print the printer's *Network Configuration* page, look in HP Smart under *Printer Settings → Network Information*, or run `ippfind` in Terminal on a Mac.\n\nAfter restarting, ink levels and printer status are shown at [http://${{HOSTNAME}}:8587](http://${{HOSTNAME}}:8587) (or the port set under *Dashboard web page*).",
+  "customUiPath": "./lib/homebridge-ui",
+  "headerDisplay": "<p align=\"center\"><img width=\"250px\" src=\"https://raw.githubusercontent.com/homebridge-plugins/homebridge-printer/latest/branding/Homebridge_x_Printer.png\"></p><p align=\"center\">For help and support please visit our <a href=\"https://github.com/homebridge-plugins/homebridge-printer/wiki\">GitHub Wiki</a>. We hope you find this plugin useful!</p>\n\n**Enter your printer's IP address or .local name below, click Save, then restart Homebridge.**\n\nNot sure of the address? Print the printer's *Network Configuration* page, look in HP Smart under *Printer Settings → Network Information*, or run `ippfind` in Terminal on a Mac.\n\nAfter restarting, ink levels and printer status are shown at [http://${{HOSTNAME}}:8587](http://${{HOSTNAME}}:8587) (or the port set under *Dashboard web page*).",
   "footerDisplay": "Each printer appears in the Home app as a **Printer** accessory (printing sensor and one tile per ink cartridge), plus the **Printer Online** and **Printer Printing** switches if they're turned on above.",
   "schema": {
     "type": "object",
+    "required": [
+      "name"
+    ],
     "properties": {
       "name": {
         "title": "Plugin name (shown in the log)",
         "type": "string",
-        "default": "HP Printer"
+        "default": "Printer"
       },
       "printers": {
         "title": "Printers",
@@ -31,7 +35,7 @@
               "title": "Name in the Home app (optional)",
               "type": "string",
               "placeholder": "Printer",
-              "description": "The switches are called \"<name> Online\" and \"<name> Printing\" (default \"Printer Online\" / \"Printer Printing\")."
+              "description": "The switches are called \"(printer name) Online\" and \"(printer name) Printing\" (default \"Printer Online\" / \"Printer Printing\")."
             },
             "onlineSwitch": {
               "title": "Show a \"Printer Online\" switch (on while the printer is switched on)",
@@ -158,7 +162,7 @@
             "default": 8587,
             "minimum": 1024,
             "maximum": 65535,
-            "description": "Open http://<this-homebridge>:<port>/ in any browser."
+            "description": "Open http://(your Homebridge address):(this port)/ in any browser."
           }
         }
       },
