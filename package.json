@@ -1,0 +1,40 @@
+{
+  "displayName": "HP Printer",
+  "name": "homebridge-hp-printer",
+  "version": "2.7.0",
+  "description": "HP (and other IPP) printers in HomeKit: printing sensor, online switch, ink levels and a live dashboard. Supports Homebridge 1.8+ and 2.x.",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Based on homebridge-printer by SeydX",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "hp",
+    "printer",
+    "ipp",
+    "ink",
+    "deskjet",
+    "officejet",
+    "envy",
+    "laserjet"
+  ],
+  "engines": {
+    "node": "^18.20.4 || ^20.15.1 || ^22.10.0 || ^24.0.0 || ^26.0.0",
+    "homebridge": "^1.8.0 || ^2.0.0-beta.0"
+  },
+  "files": [
+    "index.js",
+    "src",
+    "homebridge-ui",
+    "config.schema.json",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/run-tests.js"
+  },
+  "dependencies": {
+    "fakegato-history": "^0.6.7"
+  }
+}

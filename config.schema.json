@@ -1,0 +1,246 @@
+{
+  "pluginAlias": "HPPrinter",
+  "pluginType": "platform",
+  "singular": true,
+  "customUi": true,
+  "headerDisplay": "**Enter your printer's IP address or .local name below, click Save, then restart Homebridge.**\n\nNot sure of the address? Print the printer's *Network Configuration* page, look in HP Smart under *Printer Settings → Network Information*, or run `ippfind` in Terminal on a Mac.\n\nAfter restarting, ink levels and printer status are shown at [http://${{HOSTNAME}}:8587](http://${{HOSTNAME}}:8587) (or the port set under *Dashboard web page*).",
+  "footerDisplay": "Each printer appears in the Home app as a **Printer** accessory (printing sensor and one tile per ink cartridge), plus the **Printer Online** and **Printer Printing** switches if they're turned on above.",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Plugin name (shown in the log)",
+        "type": "string",
+        "default": "HP Printer"
+      },
+      "printers": {
+        "title": "Printers",
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "title": "Printer",
+          "properties": {
+            "address": {
+              "title": "Printer IP address or .local name",
+              "type": "string",
+              "placeholder": "192.168.1.20  or  HP7A1B2C.local",
+              "description": "Just the IP or name is enough. A full address such as ipp://192.168.1.20/ipp/print also works."
+            },
+            "name": {
+              "title": "Name in the Home app (optional)",
+              "type": "string",
+              "placeholder": "Printer",
+              "description": "The switches are called \"<name> Online\" and \"<name> Printing\" (default \"Printer Online\" / \"Printer Printing\")."
+            },
+            "onlineSwitch": {
+              "title": "Show a \"Printer Online\" switch (on while the printer is switched on)",
+              "type": "boolean",
+              "default": true,
+              "description": "With Matter turned on, this is an outlet that also shows the printer's energy use."
+            },
+            "printingSwitch": {
+              "title": "Switch 2: \"Printer Printing\" – on only while printing",
+              "type": "boolean",
+              "default": true
+            },
+            "lowInkThreshold": {
+              "title": "Warn when ink is below (%)",
+              "type": "integer",
+              "default": 10,
+              "minimum": 0,
+              "maximum": 99
+            },
+            "polling": {
+              "title": "Check the printer every (seconds)",
+              "type": "integer",
+              "default": 5,
+              "minimum": 2,
+              "maximum": 3600,
+              "description": "How quickly the switches react. 5 seconds catches even short one-page prints."
+            },
+            "marker": {
+              "title": "Show ink levels in the Home app",
+              "type": "boolean",
+              "default": true
+            },
+            "history": {
+              "title": "Printing history in the Eve app",
+              "type": "boolean",
+              "default": true
+            },
+            "manufacturer": {
+              "title": "Manufacturer",
+              "type": "string",
+              "placeholder": "HP"
+            },
+            "model": {
+              "title": "Model",
+              "type": "string",
+              "placeholder": "Detected automatically"
+            },
+            "serialNumber": {
+              "title": "Serial number",
+              "type": "string"
+            },
+            "energy": {
+              "title": "Energy in Apple Home",
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "title": "Show energy use in Apple Home",
+                  "type": "boolean",
+                  "default": true,
+                  "description": "Needs Homebridge 2.3 or newer with Matter turned on (Homebridge UI → Settings → Matter Settings), and iOS 27 for the Home app's Electricity view. Printers don't report their power use, so it's worked out from what the printer is doing and the wattages below. When Switch 1 is on, the energy is shown on the \"Printer Online\" outlet."
+                },
+                "printingWatts": {
+                  "title": "Watts while printing",
+                  "type": "number",
+                  "default": 10,
+                  "minimum": 0,
+                  "maximum": 2000,
+                  "description": "Not published by HP; 10 W is a guess for a small inkjet. A plug meter gives the real figure."
+                },
+                "readyWatts": {
+                  "title": "Watts when ready (idle)",
+                  "type": "number",
+                  "default": 2.8,
+                  "minimum": 0,
+                  "maximum": 500
+                },
+                "sleepWatts": {
+                  "title": "Watts when asleep",
+                  "type": "number",
+                  "default": 1.4,
+                  "minimum": 0,
+                  "maximum": 500
+                },
+                "offWatts": {
+                  "title": "Watts when off or not reachable",
+                  "type": "number",
+                  "default": 0.3,
+                  "minimum": 0,
+                  "maximum": 500
+                },
+                "sleepAfterMinutes": {
+                  "title": "Printer goes to sleep after (minutes idle)",
+                  "type": "integer",
+                  "default": 5,
+                  "minimum": 0,
+                  "maximum": 240
+                }
+              }
+            }
+          },
+          "required": [
+            "address"
+          ]
+        }
+      },
+      "matterOnly": {
+        "title": "Matter only (no HomeKit accessories)",
+        "type": "boolean",
+        "default": false,
+        "description": "Publish the printer to Apple Home over Matter only: Switch 1 \"Printer Online\" (with energy use) and Switch 2 \"Printer Printing\" become Matter outlets, and the HomeKit accessories from this plugin are removed. Apple Home has no Matter tile for ink, so ink levels are shown on the dashboard only. Needs Homebridge 2.3 or newer with Matter turned on (Settings → Matter Settings) and the Matter bridge added to the Home app; until then the HomeKit accessories are kept."
+      },
+      "dashboard": {
+        "title": "Dashboard web page",
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Show the ink & status dashboard web page",
+            "type": "boolean",
+            "default": true
+          },
+          "port": {
+            "title": "Dashboard port",
+            "type": "integer",
+            "default": 8587,
+            "minimum": 1024,
+            "maximum": 65535,
+            "description": "Open http://<this-homebridge>:<port>/ in any browser."
+          }
+        }
+      },
+      "debug": {
+        "title": "Debug logging",
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "layout": [
+    {
+      "key": "printers",
+      "type": "array",
+      "title": "Printers",
+      "orderable": false,
+      "buttonText": "Add another printer",
+      "items": [
+        "printers[].address",
+        "printers[].name",
+        "printers[].onlineSwitch",
+        "printers[].printingSwitch",
+        {
+          "type": "fieldset",
+          "title": "More options",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            "printers[].lowInkThreshold",
+            "printers[].polling",
+            "printers[].marker",
+            "printers[].history",
+            "printers[].manufacturer",
+            "printers[].model",
+            "printers[].serialNumber"
+          ]
+        },
+        {
+          "type": "fieldset",
+          "title": "Energy in Apple Home",
+          "expandable": true,
+          "expanded": false,
+          "description": "Defaults are HP's figures for the DeskJet 2800 series (ready 2.8 W, sleep 1.4 W, off 0.3 W). Change them for other printers.",
+          "items": [
+            "printers[].energy.enabled",
+            "printers[].energy.printingWatts",
+            "printers[].energy.readyWatts",
+            "printers[].energy.sleepWatts",
+            "printers[].energy.offWatts",
+            "printers[].energy.sleepAfterMinutes"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Apple Home connection",
+      "expandable": true,
+      "expanded": true,
+      "items": [
+        "matterOnly"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Dashboard web page",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "dashboard.enabled",
+        "dashboard.port"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "title": "Advanced",
+      "expandable": true,
+      "expanded": false,
+      "items": [
+        "name",
+        "debug"
+      ]
+    }
+  ]
+}

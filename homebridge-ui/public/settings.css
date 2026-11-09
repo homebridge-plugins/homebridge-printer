@@ -1,0 +1,30 @@
+/* HP Printer page in the Homebridge UI – uses the Bootstrap 5 styles the Homebridge UI injects */
+#hp-ui { padding-bottom: 6px; }
+#hp-dash { margin-bottom: 14px; }
+#hp-dash .hp-card { padding: 22px 26px; }
+#hp-dash .hp-name { font-size: clamp(28px, 5vw, 44px); }
+#hp-dash .hp-model { font-size: clamp(15px, 2vw, 21px); margin-bottom: 16px; }
+#hp-dash .hp-printer-svg { max-width: 460px; }
+.hp-tools { margin-bottom: 8px; }
+.hp-tools-row { display: flex; flex-wrap: wrap; gap: 8px; }
+#hp-found { margin-top: 10px; }
+.hp-found-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 12px; margin-bottom: 8px;
+  border: 1px solid var(--bs-border-color, #dee2e6); border-radius: 8px;
+}
+#hp-tests { margin-top: 12px; }
+.hp-test-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0 2px; flex-wrap: wrap; }
+.hp-test-label { overflow-wrap: anywhere; }
+.hp-test-result { font-size: 14px; min-height: 2px; padding-bottom: 6px; }
+.hp-test-result.is-good { color: var(--bs-success, #198754); }
+.hp-test-result.is-bad { color: var(--bs-danger, #dc3545); }
+.hp-test-result.is-busy { color: var(--bs-secondary-color, #6c757d); }
+.hp-hint { margin: 10px 0 0; }
+
+/* Readable in the Homebridge UI's dark mode, whatever theme is active */
+body.dark-mode #hp-ui { color: #e8e8ef; }
+body.dark-mode #hp-ui .text-muted { color: #a8a8b8 !important; }
+body.dark-mode #hp-ui .btn-outline-secondary { color: #d6d6e0; border-color: #8a8a9a; }
+body.dark-mode #hp-ui .btn-outline-secondary:hover { color: #111; background: #d6d6e0; }
+body.dark-mode .hp-found-row { border-color: #4a4a58; }

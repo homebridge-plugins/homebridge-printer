@@ -1,0 +1,20 @@
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="settings.css">
+
+<div id="hp-ui">
+  <div id="hp-dash"></div>
+
+  <div class="hp-tools">
+    <div class="hp-tools-row">
+      <button type="button" class="btn btn-primary" id="hp-find">Find printers on my network</button>
+      <a id="hp-full" class="btn btn-outline-secondary" target="_blank" rel="noopener" style="display:none">Open full-screen dashboard</a>
+    </div>
+    <div id="hp-found"></div>
+    <div id="hp-tests"></div>
+  </div>
+
+  <p class="hp-hint text-muted small" id="hp-hint">Enter your printer's IP address or .local name below, click <strong>Save</strong>, then restart Homebridge.</p>
+</div>
+
+<script src="dashboard.js"></script>
+<script src="settings.js"></script>

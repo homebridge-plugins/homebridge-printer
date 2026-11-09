@@ -1,0 +1,207 @@
+/* HP Printer dashboard */
+.hp-dashboard {
+  --bg: #e3e3ee;
+  --card: transparent;
+  --text: #1f1f2b;
+  --model: #4b55e6;
+  --muted: #6f6f80;
+  --box: #f3f3f8;
+  --tube-bg: #e1e1e8;
+  --tube-edge: #d2d2dc;
+  --low: #f08a00;
+  --pill-bg: #f7f7fb;
+  --pill-border: #2a2a36;
+  --ok: #1f8a4c;
+  --printing: #4b55e6;
+  --error: #c62f2f;
+
+  /* printer illustration */
+  --body-hi: #ffffff;
+  --body-mid: #eef0f4;
+  --body-lo: #dfe2e8;
+  --accent-band: #7f97c6;
+  --line: #c3c7d1;
+  --shadow: rgba(40, 40, 70, 0.10);
+  --paper: #ffffff;
+  --panel: #9aa9c9;
+  --panel-screen: #53607b;
+  --plate: #f7f8fa;
+  --opening: #f4f5f8;
+  --rollers: #3a3d46;
+  --slot: #5b5f6b;
+  --tray: #f2f3f6;
+  --logo: #8ea1cb;
+  --ink-lines: #a9b1c8;
+
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 8px 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hp-dashboard.hp-dark,
+body.dark-mode .hp-dashboard {
+  --bg: #1d1d27;
+  --text: #ececf4;
+  --model: #8d95ff;
+  --muted: #a3a3b6;
+  --box: #282836;
+  --tube-bg: #3a3a4a;
+  --tube-edge: #4a4a5c;
+  --pill-bg: #262634;
+  --pill-border: #9a9ab0;
+  --body-hi: #f4f5f8;
+  --body-mid: #e2e5ea;
+  --body-lo: #cdd1d9;
+  --shadow: rgba(0, 0, 0, 0.35);
+}
+
+.hp-dashboard * { box-sizing: border-box; }
+
+.hp-card {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1.35fr);
+  align-items: center;
+  gap: 24px;
+  padding: 32px 40px;
+}
+.hp-card + .hp-card { border-top: 1px solid var(--tube-edge); }
+
+.hp-name {
+  font-size: clamp(36px, 6vw, 64px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin: 0 0 8px;
+}
+.hp-model {
+  color: var(--model);
+  font-size: clamp(18px, 2.4vw, 28px);
+  line-height: 1.3;
+  margin-bottom: 26px;
+  max-width: 18em;
+}
+
+.hp-supplies {
+  display: inline-block;
+  background: var(--box);
+  border-radius: 14px;
+  padding: 18px 20px 16px;
+  min-width: 240px;
+}
+.hp-inks { display: flex; gap: 18px; margin-bottom: 12px; align-items: flex-start; }
+.hp-ink { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+
+.hp-tube {
+  display: flex;
+  gap: 2px;
+  height: 124px;
+  border-radius: 999px;
+  overflow: hidden;
+  padding: 0;
+  background: var(--tube-bg);
+  box-shadow: inset 0 0 0 1px var(--tube-edge);
+}
+.hp-tube.is-low { box-shadow: 0 0 0 2px var(--low); }
+.hp-tube.is-unknown .hp-fill { opacity: .45; }
+
+.hp-stripe {
+  width: 11px;
+  height: 100%;
+  position: relative;
+  background: linear-gradient(90deg, rgba(255,255,255,.55), rgba(255,255,255,.15));
+}
+.hp-tube > .hp-stripe:only-child { width: 34px; }
+.hp-fill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ink) 15%, transparent) 0%, var(--ink) 45%, var(--ink) 100%);
+  transition: height .8s cubic-bezier(.2,.7,.2,1);
+}
+
+.hp-dots { position: relative; width: 22px; height: 18px; }
+.hp-dot { position: absolute; width: 9px; height: 9px; border-radius: 50%; }
+.hp-dots-1 .hp-dot { left: 6px; top: 4px; }
+.hp-dots-2 .hp-dot:nth-child(1) { left: 1px; top: 4px; }
+.hp-dots-2 .hp-dot:nth-child(2) { left: 12px; top: 4px; }
+.hp-dots-3 .hp-dot:nth-child(1) { left: 6px; top: 0; }
+.hp-dots-3 .hp-dot:nth-child(2) { left: 0; top: 9px; }
+.hp-dots-3 .hp-dot:nth-child(3) { left: 11px; top: 9px; }
+
+.hp-pct { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hp-pct.is-low { color: var(--low); font-weight: 600; }
+
+.hp-meta { color: var(--muted); font-size: 14px; line-height: 1.7; }
+.hp-warn { color: var(--low); font-size: 14px; font-weight: 600; margin-top: 4px; }
+
+.hp-pill {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--pill-border);
+  border-radius: 22px;
+  background: var(--pill-bg);
+  width: fit-content;
+  max-width: 340px;
+  line-height: 1.25;
+  font-size: 15px;
+}
+.hp-pill-icon { width: 28px; height: 28px; flex: none; color: var(--muted); }
+.hp-pill-icon svg { width: 100%; height: 100%; display: block; }
+.hp-pill-text span { color: var(--muted); }
+.is-ready .hp-pill-icon { color: var(--ok); }
+.is-printing .hp-pill-icon { color: var(--printing); animation: hp-pulse 1.4s ease-in-out infinite; }
+.is-printing .hp-pill { border-color: var(--printing); }
+.is-error .hp-pill-icon { color: var(--error); }
+.is-warn .hp-pill-icon { color: var(--low); }
+.is-warn .hp-pill { border-color: var(--low); }
+.is-warn .hp-led { fill: #ffb43d; animation: hp-blink 1.2s steps(2) infinite; }
+.is-error .hp-pill { border-color: var(--error); }
+.is-offline .hp-pill-icon { color: var(--text); }
+
+.hp-right { display: flex; justify-content: center; }
+.hp-printer-svg { width: 100%; max-width: 620px; height: auto; overflow: visible; }
+.is-offline .hp-printer-svg { filter: grayscale(.6); opacity: .75; }
+
+.hp-sheet { transform: translateY(-60px); }
+.is-printing .hp-sheet { animation: hp-feed 3.2s cubic-bezier(.45,.05,.4,1) infinite; }
+.hp-led { fill: #9aa3b5; }
+.is-ready .hp-led { fill: #46d17d; }
+.is-printing .hp-led { fill: #7c86ff; animation: hp-blink 1s steps(2) infinite; }
+.is-error .hp-led { fill: #ff5a4f; animation: hp-blink .8s steps(2) infinite; }
+
+@keyframes hp-feed {
+  0% { transform: translateY(-62px); }
+  70% { transform: translateY(14px); }
+  100% { transform: translateY(14px); opacity: 0; }
+}
+@keyframes hp-blink { 50% { opacity: .25; } }
+@keyframes hp-pulse { 50% { transform: scale(.9); opacity: .7; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .is-printing .hp-sheet { animation: none; transform: translateY(0); }
+  .hp-led, .hp-pill-icon { animation: none !important; }
+}
+
+.hp-loading { padding: 40px; color: var(--muted); }
+.hp-empty { grid-template-columns: 1fr; }
+
+@media (max-width: 760px) {
+  .hp-card { grid-template-columns: 1fr; padding: 24px 16px; }
+  .hp-right { order: -1; }
+  .hp-printer-svg { max-width: 420px; }
+}
+
+.hp-dashboard.hp-dark .hp-dot,
+body.dark-mode .hp-dashboard .hp-dot { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.35); }
+
+/* Keep host themes (Homebridge UI / Bootstrap) from restyling the dashboard */
+.hp-dashboard .hp-name { color: var(--text); font-family: inherit; }
+.hp-dashboard .hp-model { color: var(--model); }
+
+.hp-energy { margin-top: 12px; font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.hp-energy strong { color: var(--text); font-weight: 600; }
