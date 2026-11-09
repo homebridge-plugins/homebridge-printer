@@ -1,4 +1,4 @@
-/* HP Printer page in the Homebridge UI – uses the Bootstrap 5 styles the Homebridge UI injects */
+/* Printer page in the Homebridge UI – uses the Bootstrap 5 styles the Homebridge UI injects */
 #hp-ui { padding-bottom: 6px; }
 #hp-dash { margin-bottom: 14px; }
 #hp-dash .hp-card { padding: 22px 26px; }
