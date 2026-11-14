@@ -3,7 +3,7 @@
   "alias": "Printer",
   "displayName": "Homebridge Printer",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Homebridge plugin to show HP and other AirPrint (IPP) printers in Apple Home, with ink levels and a live dashboard.",
   "author": "homebridge-plugins",
   "license": "MIT",
