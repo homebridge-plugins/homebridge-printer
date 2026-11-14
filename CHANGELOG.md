@@ -8,6 +8,7 @@ All notable changes to `@homebridge-plugins/homebridge-printer` will be document
 
 - ci: note in the release workflow that a new package's first version is published by hand
 - ci: publish releases with node.js v26, the current lts
+- chore(deps): dependency updates
 
 ## v1.0.0 (2026-11-09)
 
